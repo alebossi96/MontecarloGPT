@@ -5,7 +5,7 @@
 #include <fstream>
 
 #define PI 3.14159265358979323846
-
+#define C_LIGHT 29.9  //speed of light cm/ns
 // Structure to represent a 3D vector
 struct Vector {
     double x;
@@ -22,12 +22,6 @@ struct Photon {
 // Function to generate a random number between 0 and 1 using a uniform distribution
 double rand01(std::mt19937& rng) {
     std::uniform_real_distribution<double> dist(0.0, 1.0);
-    return dist(rng);
-}
-
-// Function to generate a random number with a Gaussian distribution
-double randGauss(std::mt19937& rng) {
-    std::normal_distribution<double> dist;
     return dist(rng);
 }
 
@@ -109,40 +103,49 @@ Vector generateRandomDirection(std::mt19937& rng, const Vector& incomingDirectio
 }
 
 
-int main() {//eulero stocastico
+int main() {//eulero stocastico?
+  std::ofstream out_file("TPSF.txt");
+  if (!out_file) {
+    std::cerr << "Error opening file" << std::endl;
+    return 1;
+  }
+  //std::array<double> deflectionAngleList(1e4);
   // Create a random number generator
   std::mt19937 rng(12345);
-  double radius_detector = 10;
+  double radius_detector = 0.1;
 
   // Set the parameters for the simulation
-  double mu_s = 1;
-  double stepSize = 0.1;
-  int numSteps = 100;
-  std::vector<int> photon_count(numSteps);
+  double mu_s = 10;
+  double step_size;
+  int numScatteringEvents = 10;
+  std::vector<int> photon_count(1e5);//TODO cambia
   int tot = 0;
   // Initialize the photon
-
-  for( int j = 0; j<1e4; ++j){
+  
+  for( int j = 0; j<1e5; ++j){
     Photon photon;
     photon.position.x = 0;
     photon.position.y = 0;
     photon.position.z = 0;
     photon.direction.x = 0;
     photon.direction.y = 0;
-    photon.direction.z = -1;  
+    photon.direction.z = -1;
+    double length = 0;
     // Propagate the photon through the medium
-    for (int i = 0; i < numSteps; ++i) {
+    for (int i = 0; i < numScatteringEvents; ++i) {
       // Scatter the photon with probability exp(-mu_s * stepSize)
-      double pos_x{photon.position.x}, pos_y{photon.position.y}, pos_z{photon.position.z};
-      if (rand01(rng) < 1-exp(-mu_s * stepSize)) {
-        photon.direction = generateRandomDirection(rng, photon.direction);
+      double pos_z{photon.position.z};// pos_y{photon.position.y}, pos_x{photon.position.x};
+      step_size = -log(1-rand01(rng))/mu_s;
+      length+=step_size;
+      //std::cout<<step_size<<std::endl;
+      photon.direction = generateRandomDirection(rng, photon.direction);
         //std::cout<<photon.direction.x<<" "<<photon.direction.y<<" "<<photon.direction.z<<std::endl;
-      }
+      
 
       // Propagate the photon in its current direction
-      photon.position.x += stepSize * photon.direction.x;
-      photon.position.y += stepSize * photon.direction.y;
-      photon.position.z += stepSize * photon.direction.z;
+      photon.position.x += step_size * photon.direction.x;
+      photon.position.y += step_size * photon.direction.y;
+      photon.position.z += step_size * photon.direction.z;
       //std::cout<<photon.position.x<<" "<<photon.position.y<<" "<<photon.position.z<<std::endl;
       //TODO detector interaction
       
@@ -152,7 +155,13 @@ int main() {//eulero stocastico
         double x_intersection = photon.direction.x*t+ photon.position.x;
         double y_intersection = photon.direction.y*t+ photon.position.y;
         if (x_intersection*x_intersection+y_intersection*y_intersection < radius_detector*radius_detector){
-            ++photon_count[i];
+            double time = length/C_LIGHT; // in ns
+            //std::cout<<"length:"<<length<<" time"<<time<<std::endl;
+            if(int(time*1e4)>1e5){
+                std::cout<<"exeptionally late"<<std::endl;
+                break;
+                }
+            ++photon_count[int(time*1e4)];
             ++tot;
             break;
             }
@@ -162,6 +171,11 @@ int main() {//eulero stocastico
     
     std::cout<<j<<std::endl;
   }
+  for (int i = 0; i < 1e5; ++i) {
+    out_file << photon_count[i] << std::endl;
+  }
+
+  out_file.close();
   std::cout<<"tot:"<<tot<<std::endl;
   return 0;
 }
