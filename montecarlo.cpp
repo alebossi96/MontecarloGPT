@@ -59,8 +59,10 @@ std::ostream& operator<<(std::ostream& os, const Vector& v)
 Photon::Photon(const Vector &position_,const Vector &direction_, const double &mu_s_):
     position(position_),
     direction(direction_),
+    direction_spherical(direction_),
     mu_s(mu_s_)
     {
+    
     length = 0;
     time = 0;
     }
@@ -113,32 +115,29 @@ std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<dou
     }
 
 
-Vector computeOutputVersor(const Vector& v, const double &deflectionAngle, const double &azimuthAngleDeflection)
+void Photon::computeOutputVersor(const double &deflectionAngle, const double &azimuthAngleDeflection)
     {// compute the output versor given the input direction versor, the deflection angle, and the azimuth angle
     // convert input direction versor to spherical coordinates
-    VectorSphericalCoordinate v_spherical(v);
-    v_spherical.phi+=azimuthAngleDeflection;
+    this->direction_spherical.phi+=azimuthAngleDeflection;
     // modify the polar angle to reflect the deflection angle
-    v_spherical.theta += deflectionAngle;
-    std::cout<<" d_a = "<<deflectionAngle;
+    this->direction_spherical.theta += deflectionAngle;
+    this->direction  = this->direction_spherical.to_cartesian_coordinates();
+    //std::cout<<" d_a = "<<deflectionAngle;
     // convert modified spherical coordinates to output direction versor
-    return v_spherical.to_cartesian_coordinates();
     }
-Vector generateRandomDirection(std::mt19937& rng, const Vector& incomingDirection, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray)
+void Photon::generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray)
     {// generate a random direction of scattering
     // Generate the scattering angle using the inverse CDF of the provided probability function
     std::uniform_int_distribution<> uniform_int(0, SIZE_LIST_ANGLE); 
     double deflectionAngle = deflectionAngleArray[std::uniform_int_distribution<std::size_t>(0,SIZE_LIST_ANGLE-1)(rng)];
-    return computeOutputVersor(incomingDirection, deflectionAngle, 2 * PI * rand01(rng));
+    this->computeOutputVersor(deflectionAngle, 2 * PI * rand01(rng));
     }
 void Photon::propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE>& deflectionAngleArray)
     {
     double dl = -log(1-rand01(rng))/this->mu_s;
     //double dt = dl/C_LIGHT;
     this->length+=dl;
-
-    this->direction = generateRandomDirection(rng, this->direction, deflectionAngleArray);
+    generateRandomDirection(rng, deflectionAngleArray);
     this->position += this->direction*dl;    // Propagate the photon in new direction
-    //TODO detector interaction
     this->time = length/C_LIGHT; // in ns
     }

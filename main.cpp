@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     // Create a random number generator
     std::mt19937 rng(12345);
     deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, atof(argv[1]));
-    Detector detector(Vector(1,0,0),0.2);
+    Detector detector(Vector(0,0,0),0.1);
     // Set the parameters for the simulation
     std::cout<<"g = "<<atof(argv[1])<<" mu_s = "<< atof(argv[2])<<std::endl;
     //int numScatteringEvents = 3;
@@ -35,8 +35,8 @@ int main(int argc, char **argv)
             photon.propagatePhoton(rng, deflectionAngleArray);
             if (detector.is_recorded(photon, position_previous))
                 {
-                std::cout<<tot/PHOTON_INTEGRATION<<std::endl;
-                if(int(photon.time*1e4)<1e4) break;
+                std::cout<<double(tot)/PHOTON_INTEGRATION<<std::endl;
+                if(int(photon.time*1e4)>1e4) break;
                 ++tcspc[int(photon.time*1e4)];
                 ++tot;
                 if(tot > PHOTON_INTEGRATION) goto exit;    

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -Wextra -pedantic -g
+CFLAGS = -Wall -Wextra -pedantic -Ofast#-g
 
 main: main.o
 	$(CC) main.o montecarlo.o -o main
