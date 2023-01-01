@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -pedantic -g -pg
+CFLAGS = -Wall -Wextra -pedantic -g
 
 main: main.o
 	$(CC) main.o -o main
