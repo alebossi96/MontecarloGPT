@@ -141,3 +141,37 @@ void Photon::propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LI
     this->position += this->direction*dl;    // Propagate the photon in new direction
     this->time = length/C_LIGHT; // in ns
     }
+std::vector<int> simulate(const double &g, const double &mu_s)
+    {
+    std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray;
+    // Create a random number generator
+    std::mt19937 rng(12345);
+    deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, g);
+    Detector detector(Vector(1,0,0),0.1);
+    //int numScatteringEvents = 3;
+    std::vector<int> tcspc(1e4);
+    int tot = 0;
+    for( int j = 0; j<NUM_PHOTONS; ++j)
+        {
+        Vector position_start(0,0,0);
+        Vector direction_start(0,0,-1);
+        Photon photon(position_start, direction_start, mu_s);
+        // Propagate the photon through the medium
+        while (photon.time < TIME_LIMIT) 
+            {
+            Vector position_previous(photon.position);// Store the current position in a temporary variable
+            photon.propagatePhoton(rng, deflectionAngleArray);
+            if (detector.is_recorded(photon, position_previous))
+                {
+                std::cout<<double(tot)/PHOTON_INTEGRATION<<std::endl;
+                if(int(photon.time*1e4)>1e4) break;
+                ++tcspc[int(photon.time*1e4)];
+                ++tot;
+                if(tot > PHOTON_INTEGRATION) return tcspc;  
+                break;
+                }  
+            }
+        }
+    std::cout<<"tot:"<<tot<<std::endl;
+    return tcspc;
+    }

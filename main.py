@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+"""
 values = []
 def p(theta):
     g = 0.  9
@@ -20,6 +21,13 @@ plt.plot(x,p(x)*np.sin(x)*2*math.pi/np.max(p(x)*np.sin(x)*2*math.pi), 'k--', lab
 print(np.sum(p(x)*np.sin(x))*step*2*math.pi)
 print(np.sum(hist)*(bin_edges[1]- bin_edges[0]))
 plt.show()
-
+"""
+import montecarlomodule as mc
+for mu_s in [20]:
+    res = mc.mc(0.5,mu_s)
+    plt.plot(res, label = str(mu_s))
+plt.legend()
+plt.yscale('log')
+plt.show()
 
 

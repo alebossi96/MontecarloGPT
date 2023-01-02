@@ -71,5 +71,6 @@ double rand01(std::mt19937& rng);
 double henyey_greenstein_F(const double &theta, const double &g);
 // fill array of angles of scattering
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
-// compute the output versor given the input direction versor, the deflection angle, and the azimuth angle
+
+std::vector<int> simulate(const double &g, const double &mu_s);
 #endif
