@@ -14,8 +14,8 @@
 #define CH_PER_UNIT 1e3
 #define NUM_PHOTONS 1e9
 #define SIZE_LIST_ANGLE 10000
-#define TIME_LIMIT 1
-#define PHOTON_INTEGRATION 1e3
+#define TIME_LIMIT 2
+#define PHOTON_INTEGRATION 1e4
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -53,11 +53,12 @@ class Photon
         Photon(const Vector &position_,const Vector &direction_, const double &mu_s_);
         double length, time;
         void propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE>& deflectionAngleArray);//propagate the photon
+        void generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray);
     private:
         const double mu_s;
         void computeOutputVersor(const double &deflectionAngle, const double &azimuthAngleDeflection);
         // generate a random direction of scattering
-        void generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray);
+
     };
 class Detector
     {
@@ -69,11 +70,13 @@ class Detector
         double radius;
     };
 // Function to generate a random number between 0 and 1 using a uniform distribution
+int sign(const double &x);
+void find_v1(Vector &v1, const Vector &v0, double theta, double phi);
 double rand01(std::mt19937& rng);
 // Calculate the CDF for the Henyey-Greenstein phase function
 double henyey_greenstein_F(const double &theta, const double &g);
 // fill array of angles of scattering
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
-
+std::vector<double> test_angle(const double &g, const int &num_sct);
 std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector);
 #endif

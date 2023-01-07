@@ -30,7 +30,7 @@ class obj_det:
         self.r = r
 d = obj_det(1,0,0,0.1)
 import montecarlomodule as mc
-time = np.arange(0,1e3)/1e3
+time = np.arange(0,2e3)/1e3
 for mu_s in [20]:
     res = mc.mc(0.5,mu_s, d)
     plt.plot(time, res/np.sum(res[100:]), label = str(mu_s))

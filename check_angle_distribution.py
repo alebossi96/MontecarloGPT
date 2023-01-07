@@ -30,10 +30,16 @@ for g in [0.9]:
     plt.plot(np.cos(x),p(np.cos(x), g)*np.sin(x)*2*math.pi/np.max(p(np.cos(x), g)*np.sin(x)*2*math.pi), 'k--', label = "Theoretical")
     print(np.sum(p(np.cos(x),g)*np.sin(x))*step*2*math.pi)
     print(np.sum(hist)*(bin_edges[1]- bin_edges[0]))
-   
-
+    values = mc.test_angle (int(1e4),g);
+    bins = 1000
+    hist, bin_edges = np.histogram(values, bins=bins, density=True)
+    #values = values[values<10]
+    plt.plot(bin_edges[:bins], hist/np.max(hist), label="Measured")
+    plt.show()  
+    """
     res = mc.mc(g,20, d)
     values = []
+    
     with open("cos_ang.txt", "r") as f:
       for line in f:
         values.append(float(line.strip()))
@@ -44,6 +50,7 @@ for g in [0.9]:
     #values = values[values<10]
     plt.plot(bin_edges[:bins], hist/np.max(hist), label="Measured")
     plt.show()  
+    """
     """
     step = 1e-3
     

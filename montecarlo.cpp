@@ -1,5 +1,11 @@
 #include "montecarlo.hpp"
 
+int sign(const double &x)
+    {
+    if(x>0)
+        return 1;
+    return -1;
+    }
 Vector::Vector(const double &x,const double &y, const double &z)
     {
     this->x = x;
@@ -129,13 +135,31 @@ void Photon::computeOutputVersor(const double &deflectionAngle, const double &az
     //std::cout<<" d_a = "<<deflectionAngle;
     // convert modified spherical coordinates to output direction versor
     }
+void find_v1(Vector &v1, const Vector &v0, double theta, double phi)
+    {
+    if(fabs(v0.z)>0.99)
+        {
+        v1.x= sin(theta)*cos(phi);
+        v1.y = sin(theta)*sin(phi);
+        v1.z = sign(v0.z)*cos(theta);
+        return;
+        }
+    double c0 = sin(theta)/sqrt(1.-v0.z*v0.z);    
+    v1.x = c0*(v0.x*v0.z*cos(phi)-v0.y*sin(phi))+v0.x*cos(theta);
+    v1.y = c0*(v0.y*v0.z*cos(phi)+v0.x*sin(phi))+v0.y*cos(theta);
+    v1.z =  -c0*(1.-v0.z*v0.z)*cos(phi)+v0.z*cos(theta);
+    std::cout<< v1*v0<<" "<<cos(theta)<<std::endl;
+    }
 void Photon::generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray)
     {// generate a random direction of scattering
     // Generate the scattering angle using the inverse CDF of the provided probability function
     std::uniform_int_distribution<> uniform_int(0, SIZE_LIST_ANGLE); 
-    double deflectionAngle = deflectionAngleArray[std::uniform_int_distribution<std::size_t>(0,SIZE_LIST_ANGLE-1)(rng)];
-    std::cout<<cos(deflectionAngle)<<" ";
-    this->computeOutputVersor(deflectionAngle, 2 * PI * rand01(rng));
+    double theta = deflectionAngleArray[std::uniform_int_distribution<std::size_t>(0,SIZE_LIST_ANGLE-1)(rng)];
+    //std::cout<<cos(theta)<<" ";
+    double phi = 2 * PI * rand01(rng);
+    Vector u(this->direction);
+    find_v1(this->direction, u, theta, phi);
+    //this->computeOutputVersor(theta, azimuth);
     }
 void Photon::propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE>& deflectionAngleArray)
     {
@@ -146,6 +170,23 @@ void Photon::propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LI
     this->position += this->direction*dl;    // Propagate the photon in new direction
     this->time = length/C_LIGHT; // in ns
     }
+std::vector<double> test_angle(const double &g, const int &num_sct)
+    {
+    std::mt19937 rng(12345);
+    std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, g);
+    Vector position_start(0,0,0);
+    Vector direction_start(0,0,-1);
+    Photon photon(position_start, direction_start, 10);
+    std::vector<double> cos_angle;
+    for(int i = 0; i<num_sct; ++i)
+        {
+        Vector prev(photon.direction);
+        photon.generateRandomDirection(rng, deflectionAngleArray);
+        Vector succ(photon.direction);
+        cos_angle.emplace_back(prev*succ);
+        }
+    return cos_angle;
+    }
 std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector)
     {
     std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray;
@@ -154,7 +195,7 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
     deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, g);
     //int numScatteringEvents = 3;
     std::vector<int> tcspc(TIME_LIMIT*CH_PER_UNIT);
-    std::vector<double> cos_angle_sct;
+    //std::vector<double> cos_angle_sct;
     int tot = 0;
     for( int j = 0; j<NUM_PHOTONS; ++j)
         {
@@ -169,8 +210,8 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
             photon.propagatePhoton(rng, deflectionAngleArray);
             Vector direction_new(photon.direction);
             double cos_angle = direction_previous*direction_new;
-            std::cout<< cos_angle<<std::endl;
-            cos_angle_sct.emplace_back(cos_angle);
+            //std::cout<< cos_angle<<std::endl;
+            //cos_angle_sct.emplace_back(cos_angle);
             if (detector.is_recorded(photon, position_previous))
                 {
                 std::cout<<double(tot)/PHOTON_INTEGRATION<<std::endl;
@@ -182,7 +223,9 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
                 }  
             }
         }
+        
     exit:
+    /*
     std::ofstream out_file("cos_ang.txt");
     if (!out_file) 
         {
@@ -194,6 +237,7 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
         out_file<<cos_angle_sct[i]<<std::endl;
         }
     out_file.close();
+    */
     std::cout<<"tot:"<<tot<<std::endl;
     return tcspc;
     }
