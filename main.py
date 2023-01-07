@@ -22,11 +22,24 @@ print(np.sum(p(x)*np.sin(x))*step*2*math.pi)
 print(np.sum(hist)*(bin_edges[1]- bin_edges[0]))
 plt.show()
 """
+class obj_det:
+    def __init__(self, x,y,z, r):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.r = r
+d = obj_det(1,0,0,0.1)
 import montecarlomodule as mc
+time = np.arange(0,1e3)/1e3
 for mu_s in [20]:
-    res = mc.mc(0.5,mu_s)
-    plt.plot(res, label = str(mu_s))
+    res = mc.mc(0.5,mu_s, d)
+    plt.plot(time, res/np.sum(res[100:]), label = str(mu_s))
 plt.legend()
+v = 29.9
+mu_s = 20*(0.5)
+def de_0(time):
+    return np.exp(-3*mu_s/(4*time*v))/time**(3/2)
+plt.plot(time,de_0(time)/np.sum(de_0(time)[100:]))
 plt.yscale('log')
 plt.show()
 

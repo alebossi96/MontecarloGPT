@@ -11,10 +11,11 @@
 #define PI 3.14159265358979323846
 #define C_LIGHT 29.9  //TODO speed of light cm/ns
 
+#define CH_PER_UNIT 1e3
 #define NUM_PHOTONS 1e9
-#define SIZE_LIST_ANGLE 1000
+#define SIZE_LIST_ANGLE 10000
 #define TIME_LIMIT 1
-#define PHOTON_INTEGRATION 1e5
+#define PHOTON_INTEGRATION 1e3
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -24,9 +25,11 @@ class Vector
         double x;
         double y;
         double z;
+        double operator *(const Vector &a);
         Vector operator *(const double &a);
         Vector operator +(const Vector &a);
         Vector& operator +=(const Vector &a);
+        
         friend std::ostream& operator<<(std::ostream& os, const Vector& v);
     };
     
@@ -72,5 +75,5 @@ double henyey_greenstein_F(const double &theta, const double &g);
 // fill array of angles of scattering
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
 
-std::vector<int> simulate(const double &g, const double &mu_s);
+std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector);
 #endif
