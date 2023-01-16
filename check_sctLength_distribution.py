@@ -12,30 +12,21 @@ def p(cos_theta, g):
 d = obj_det(0,0,0,0.1)
 
 import montecarlomodule as mc
-time = np.arange(0,1e3)/1e3
-for g in [0.9]:
-    ang_dist = mc.angle_distribution(g)
-    angle = []
-    for _ in range(100000):
-        idx = np.random.randint(0,len(ang_dist))
-        angle.append(ang_dist[idx])
-    bins = 100
-    values = np.array(angle)
-    hist, bin_edges = np.histogram(values, bins=bins, density=True)
+for mu_s in [10,20,30,40]:
 
-    #values = values[values<10]
-    plt.plot(np.cos(bin_edges[:bins]), hist/np.max(hist), label="from_dists")
-    step = 1e-3
-    x = np.arange(step,math.pi,step = step)
-    plt.plot(np.cos(x),p(np.cos(x), g)*2*math.pi/np.max(p(np.cos(x), g)*2*math.pi), 'k--', label = "Theoretical")
-    print(np.sum(p(np.cos(x),g))*step*2*math.pi)
-    print(np.sum(hist)*(bin_edges[1]- bin_edges[0]))
-    values = mc.test_angle (int(1e4),g);
+    values = mc.test_mu_s(mu_s, int(1e5));
+    from scipy.stats import expon
+    # Fit the exponential distribution to the data
+    tau = expon.fit(values)
+
+    print(1/tau[1], mu_s)
+    """
     bins = 1000
     hist, bin_edges = np.histogram(values, bins=bins, density=True)
     #values = values[values<10]
-    plt.plot(bin_edges[:bins], hist/np.max(hist), label="Measured")
+    plt.plot(1/bin_edges[1:(bins+1)], hist/np.max(hist), label="Measured")
     plt.show()  
+    """
     """
     res = mc.mc(g,20, d)
     values = []

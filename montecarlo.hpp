@@ -14,8 +14,8 @@
 #define CH_PER_UNIT 1e3
 #define NUM_PHOTONS 1e9
 #define SIZE_LIST_ANGLE 10000
-#define TIME_LIMIT 2
-#define PHOTON_INTEGRATION 1e4
+#define TIME_LIMIT 3
+#define PHOTON_INTEGRATION 1e5
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -78,5 +78,6 @@ double henyey_greenstein_F(const double &theta, const double &g);
 // fill array of angles of scattering
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
 std::vector<double> test_angle(const double &g, const int &num_sct);
+std::vector<double> test_mus(const double &mu_s, const int &num_sct);
 std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector);
 #endif

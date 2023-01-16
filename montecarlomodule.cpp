@@ -102,7 +102,28 @@ extern "C"
         for(std::size_t i = 0; i< length; ++i)
             {
             results[i] = cos_angle[i];
-            std::cout<<results[i]<<std::endl;
+            }
+        PyObject* obj = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void*)results);
+        return obj;
+        }
+    PyObject *test_mu_sPy(PyObject *self, PyObject *args, PyObject *keywds)
+        {
+        Py_Initialize();//cosa fanno?
+        _import_array();
+        double mu_s;
+        int num_sct;
+        static char *kwlist[] = { "mu_s", "num_sct", NULL};
+        PyArg_ParseTupleAndKeywords(args, keywds, "di", kwlist, &mu_s, &num_sct);
+        
+        std::vector<double> dl = test_mus(mu_s, num_sct);
+        double * results;
+        std::size_t length = dl.size();
+        results =(double *)malloc(length * sizeof(double));
+        npy_intp dims[1];
+        dims[0] = length;
+        for(std::size_t i = 0; i< length; ++i)
+            {
+            results[i] = dl[i];
             }
         PyObject* obj = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void*)results);
         return obj;
@@ -112,6 +133,7 @@ extern "C"
         {"mc", (PyCFunction)(void(*)(void)) mc, METH_VARARGS| METH_KEYWORDS, "docstring"},
         {"angle_distribution", (PyCFunction)(void(*)(void)) angle_distribution, METH_VARARGS| METH_KEYWORDS, "docstring"},
         {"test_angle", (PyCFunction)(void(*)(void)) test_anglePy, METH_VARARGS| METH_KEYWORDS, "docstring"},
+        {"test_mu_s", (PyCFunction)(void(*)(void)) test_mu_sPy, METH_VARARGS| METH_KEYWORDS, "docstring"},
         {NULL, NULL}
         };
     static struct PyModuleDef functionmodule =

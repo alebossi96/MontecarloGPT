@@ -144,11 +144,11 @@ void find_v1(Vector &v1, const Vector &v0, double theta, double phi)
         v1.z = sign(v0.z)*cos(theta);
         return;
         }
-    double c0 = sin(theta)/sqrt(1.-v0.z*v0.z);    
+    double c0 = sin(theta)/sqrt(1.-v0.z*v0.z);    //preso da mcx_core.cu riga 931
     v1.x = c0*(v0.x*v0.z*cos(phi)-v0.y*sin(phi))+v0.x*cos(theta);
     v1.y = c0*(v0.y*v0.z*cos(phi)+v0.x*sin(phi))+v0.y*cos(theta);
     v1.z =  -c0*(1.-v0.z*v0.z)*cos(phi)+v0.z*cos(theta);
-    std::cout<< v1*v0<<" "<<cos(theta)<<std::endl;
+    //std::cout<< v1*v0<<" "<<cos(theta)<<std::endl;
     }
 void Photon::generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray)
     {// generate a random direction of scattering
@@ -180,12 +180,33 @@ std::vector<double> test_angle(const double &g, const int &num_sct)
     std::vector<double> cos_angle;
     for(int i = 0; i<num_sct; ++i)
         {
+        /*
         Vector prev(photon.direction);
         photon.generateRandomDirection(rng, deflectionAngleArray);
         Vector succ(photon.direction);
-        cos_angle.emplace_back(prev*succ);
+        */
+        std::uniform_int_distribution<> uniform_int(0, SIZE_LIST_ANGLE); 
+        double theta = deflectionAngleArray[std::uniform_int_distribution<std::size_t>(0,SIZE_LIST_ANGLE-1)(rng)];
+        cos_angle.emplace_back(cos(theta));
         }
     return cos_angle;
+    }
+std::vector<double> test_mus(const double &mu_s, const int &num_sct)
+    {
+    std::mt19937 rng(12345);
+    std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, 0);
+    Vector position_start(0,0,0);
+    Vector direction_start(0,0,-1);
+    Photon photon(position_start, direction_start, mu_s);
+    std::vector<double> dl;
+    double previous_length;
+    for(int i= 0; i<num_sct; ++i)
+        {
+        previous_length = photon.length;
+        photon.propagatePhoton(rng, deflectionAngleArray);
+        dl.emplace_back(photon.length-previous_length);
+        }
+    return dl;
     }
 std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector)
     {
