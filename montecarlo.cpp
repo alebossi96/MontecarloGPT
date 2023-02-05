@@ -208,17 +208,17 @@ std::vector<double> test_mus(const double &mu_s, const int &num_sct)
         }
     return dl;
     }
-std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector)
+Results simulate(const double &g, const double &mu_s, Detector &detector)
     {
     std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray;
     // Create a random number generator
     std::mt19937 rng(12345);
     deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, g);
     //int numScatteringEvents = 3;
-    std::vector<int> tcspc(TIME_LIMIT*CH_PER_UNIT);
+    Results res;
     //std::vector<double> cos_angle_sct;
     int tot = 0;
-    for( int j = 0; j<NUM_PHOTONS; ++j)
+    for( int j = 0; j<NUM_PHOTONS && tot < PHOTON_INTEGRATION ; ++j)
         {
         Vector position_start(0,0,0);
         Vector direction_start(0,0,-1);
@@ -228,37 +228,27 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
             {
             Vector position_previous(photon.position);// Store the current position in a temporary variable
             Vector direction_previous(photon.direction);
+            double time_prev = photon.time;
             photon.propagatePhoton(rng, deflectionAngleArray);
             Vector direction_new(photon.direction);
             double cos_angle = direction_previous*direction_new;
+            ++res.cos_angle[int(cos_angle*SIZE_LIST_ANGLE)];
             //std::cout<< cos_angle<<std::endl;
             //cos_angle_sct.emplace_back(cos_angle);
             if (detector.is_recorded(photon, position_previous))
                 {
                 std::cout<<double(tot)/PHOTON_INTEGRATION<<std::endl;
-                if(int(photon.time*CH_PER_UNIT)>TIME_LIMIT*CH_PER_UNIT) break;
-                ++tcspc[int(photon.time*CH_PER_UNIT)];
+                
+                double dt = - position_previous.z/direction_new.z;
+                double time_at_detector = time_prev + dt;
+                if(int(time_at_detector*CH_PER_UNIT)>TIME_LIMIT*CH_PER_UNIT) break;
+                ++res.tcspc[int(time_at_detector*CH_PER_UNIT)];
                 ++tot;
-                if(tot > PHOTON_INTEGRATION) goto exit;//return tcspc;  
                 break;
                 }  
             }
         }
         
-    exit:
-    /*
-    std::ofstream out_file("cos_ang.txt");
-    if (!out_file) 
-        {
-        std::cerr << "Error opening file" << std::endl;
-        return tcspc;
-        }
-    for(std::size_t i = 0; i<cos_angle_sct.size(); ++i)
-        {
-        out_file<<cos_angle_sct[i]<<std::endl;
-        }
-    out_file.close();
-    */
     std::cout<<"tot:"<<tot<<std::endl;
-    return tcspc;
+    return res;
     }

@@ -9,13 +9,13 @@
 #include <cstdlib>
 
 #define PI 3.14159265358979323846
-#define C_LIGHT 29.9  //TODO speed of light cm/ns
+#define C_LIGHT 29.97925  //TODO speed of light cm/ns
 
 #define CH_PER_UNIT 1e3
 #define NUM_PHOTONS 1e9
 #define SIZE_LIST_ANGLE 10000
-#define TIME_LIMIT 3
-#define PHOTON_INTEGRATION 1e5
+#define TIME_LIMIT 2
+#define PHOTON_INTEGRATION int(1e4)
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -41,7 +41,12 @@ class VectorSphericalCoordinate
         double r, theta, phi;
         Vector to_cartesian_coordinates();// convert spherical coordinates to a direction versor
     };
-
+class Results
+    {
+    public:
+        std::array<int, PHOTON_INTEGRATION*TIME_LIMIT> tcspc;
+        std::array<int, SIZE_LIST_ANGLE> cos_angle;
+    };
 // Structure to represent a photon
 class Photon
     {
@@ -79,5 +84,5 @@ double henyey_greenstein_F(const double &theta, const double &g);
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
 std::vector<double> test_angle(const double &g, const int &num_sct);
 std::vector<double> test_mus(const double &mu_s, const int &num_sct);
-std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector);
+Results simulate(const double &g, const double &mu_s, Detector &detector);
 #endif

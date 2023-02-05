@@ -48,7 +48,9 @@ extern "C"
         PyArg_ParseTupleAndKeywords(args, keywds, "ddO", kwlist, &g, &mu_s, &obj_det);
         std::cout<<"g = "<<g<<" mu_s = "<< mu_s<<std::endl;
         Detector detector =  set_detector(obj_det);
-        std::vector<int> dtof = simulate(g,mu_s, detector);
+        Results res = simulate(g,mu_s, detector);
+        std::array<int, PHOTON_INTEGRATION*TIME_LIMIT> dtof = res.tcspc;
+        std::array<int, SIZE_LIST_ANGLE> cos_angle = res.cos_angle;
         int * results;
         std::size_t length = dtof.size();
         results =(int *)malloc(length * sizeof(int));
@@ -58,9 +60,22 @@ extern "C"
             {
             results[i] = dtof[i];
             }
-        PyObject* obj = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)results);
+        PyObject* obj1 = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)results);
+        
         std::cout<<g <<"  "<<mu_s<<std::endl;
-        return obj;
+        length = cos_angle.size();
+        results =(int *)malloc(length * sizeof(int));
+        dims[0] = length;
+        for(std::size_t i = 0; i< length; ++i)
+            {
+            results[i] = cos_angle[i];
+            }
+        PyObject* obj2 = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)results);
+          PyObject* list = PyList_New(2);
+        if (!list) return NULL;
+        PyList_SET_ITEM(list, 0, obj1);
+        PyList_SET_ITEM(list, 1, obj2);
+        return list;
         }
     PyObject *angle_distribution(PyObject *self, PyObject *args, PyObject *keywds)
         {
