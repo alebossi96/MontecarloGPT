@@ -49,7 +49,7 @@ extern "C"
         std::cout<<"g = "<<g<<" mu_s = "<< mu_s<<std::endl;
         Detector detector =  set_detector(obj_det);
         Results res = simulate(g,mu_s, detector);
-        std::array<int, PHOTON_INTEGRATION*TIME_LIMIT> dtof = res.tcspc;
+        std::array<int, CH_PER_UNIT*TIME_LIMIT> dtof = res.tcspc;
         std::array<int, SIZE_LIST_ANGLE> cos_angle = res.cos_angle;
         int * results;
         std::size_t length = dtof.size();
@@ -59,10 +59,12 @@ extern "C"
         for(std::size_t i = 0; i< length; ++i)
             {
             results[i] = dtof[i];
+            std::cout<<dtof[i]<<std::endl;
             }
         PyObject* obj1 = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)results);
         
         std::cout<<g <<"  "<<mu_s<<std::endl;
+        
         length = cos_angle.size();
         results =(int *)malloc(length * sizeof(int));
         dims[0] = length;
@@ -71,7 +73,7 @@ extern "C"
             results[i] = cos_angle[i];
             }
         PyObject* obj2 = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)results);
-          PyObject* list = PyList_New(2);
+        PyObject* list = PyList_New(2);
         if (!list) return NULL;
         PyList_SET_ITEM(list, 0, obj1);
         PyList_SET_ITEM(list, 1, obj2);

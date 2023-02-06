@@ -76,6 +76,13 @@ Photon::Photon(const Vector &position_,const Vector &direction_, const double &m
     length = 0;
     time = 0;
     }
+Results::Results()
+    {
+    for(int i = 0; i<CH_PER_UNIT*TIME_LIMIT; ++i)
+        tcspc[i] = 0;
+    for(int i = 0; i<SIZE_LIST_ANGLE; ++i)
+        cos_angle[i] = 0;
+    }
 Detector::Detector(const Vector &position_, const double radius_):
     position(position_),
     radius{radius_}{}
@@ -248,7 +255,8 @@ Results simulate(const double &g, const double &mu_s, Detector &detector)
                 }  
             }
         }
-        
+    for(int i = 0; i< TIME_LIMIT*CH_PER_UNIT;++i)
+        std::cout<<res.tcspc[i]<<std::endl; 
     std::cout<<"tot:"<<tot<<std::endl;
     return res;
     }

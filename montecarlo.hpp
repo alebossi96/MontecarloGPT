@@ -11,11 +11,11 @@
 #define PI 3.14159265358979323846
 #define C_LIGHT 29.97925  //TODO speed of light cm/ns
 
-#define CH_PER_UNIT 1e3
+#define CH_PER_UNIT int(1e2)
 #define NUM_PHOTONS 1e9
-#define SIZE_LIST_ANGLE 10000
+#define SIZE_LIST_ANGLE 1000
 #define TIME_LIMIT 2
-#define PHOTON_INTEGRATION int(1e4)
+#define PHOTON_INTEGRATION 1e4
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -44,7 +44,8 @@ class VectorSphericalCoordinate
 class Results
     {
     public:
-        std::array<int, PHOTON_INTEGRATION*TIME_LIMIT> tcspc;
+        Results();
+        std::array<int, CH_PER_UNIT*TIME_LIMIT> tcspc;
         std::array<int, SIZE_LIST_ANGLE> cos_angle;
     };
 // Structure to represent a photon
