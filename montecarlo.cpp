@@ -79,6 +79,14 @@ Photon::Photon(const Vector &position_,const Vector &direction_, const double &m
 Detector::Detector(const Vector &position_, const double radius_):
     position(position_),
     radius{radius_}{}
+Results::Results()
+    {
+    for(std::size_t i = 0; i<this->tcspc.size(); ++i)
+        this->tcspc[i] = 0;
+    
+    for(std::size_t i = 0; i<this->cos_angle.size(); ++i)
+        this->cos_angle[i] = 0;
+    }
 bool Detector::is_recorded(const Photon &photon, const Vector &previous_position)
     {
     if (previous_position.z < 0 && photon.position.z>0){
@@ -208,14 +216,15 @@ std::vector<double> test_mus(const double &mu_s, const int &num_sct)
         }
     return dl;
     }
-std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector)
+Results simulate(const double &g, const double &mu_s, Detector &detector)
     {
     std::array<double, SIZE_LIST_ANGLE> deflectionAngleArray;
     // Create a random number generator
     std::mt19937 rng(12345);
     deflectionAngleArray = inverse_transform_sampling(henyey_greenstein_F, g);
     //int numScatteringEvents = 3;
-    std::vector<int> tcspc(TIME_LIMIT*CH_PER_UNIT);
+    //std::vector<int> tcspc(TIME_LIMIT*CH_PER_UNIT);
+    Results res;
     //std::vector<double> cos_angle_sct;
     int tot = 0;
     for( int j = 0; j<NUM_PHOTONS; ++j)
@@ -231,13 +240,12 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
             photon.propagatePhoton(rng, deflectionAngleArray);
             Vector direction_new(photon.direction);
             double cos_angle = direction_previous*direction_new;
-            //std::cout<< cos_angle<<std::endl;
-            //cos_angle_sct.emplace_back(cos_angle);
+            ++res.cos_angle[int((cos_angle+1)*SIZE_LIST_ANGLE/2)];
             if (detector.is_recorded(photon, position_previous))
                 {
                 std::cout<<double(tot)/PHOTON_INTEGRATION<<std::endl;
                 if(int(photon.time*CH_PER_UNIT)>TIME_LIMIT*CH_PER_UNIT) break;
-                ++tcspc[int(photon.time*CH_PER_UNIT)];
+                ++res.tcspc[int(photon.time*CH_PER_UNIT)];
                 ++tot;
                 if(tot > PHOTON_INTEGRATION) goto exit;//return tcspc;  
                 break;
@@ -259,6 +267,8 @@ std::vector<int> simulate(const double &g, const double &mu_s, Detector &detecto
         }
     out_file.close();
     */
+    for(std::size_t i = 0; i<res.cos_angle.size(); ++i)
+        std::cout<<res.cos_angle[i]<<std::endl;
     std::cout<<"tot:"<<tot<<std::endl;
-    return tcspc;
+    return res;
     }

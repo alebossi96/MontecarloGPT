@@ -33,9 +33,11 @@ import montecarlomodule as mc
 
 for mu_s in [1, 5, 10, 20, 40, 80]:
     res = mc.mc(0.5,mu_s, d)
-    time = np.arange(0,len(res))/1e3
-    plt.plot(time, res/np.sum(res[100:]), label = "$mu_s$" +str(mu_s))
-
+    time = np.arange(0,len(res[0]))/1e3
+    plt.plot(time, res[0], label = "$mu_s$" +str(mu_s))
+    plt.show()
+    plt.plot( res[1])
+    plt.show()
 v = 29.9
 mu_s = 20*(0.5)
 def de_0(time):

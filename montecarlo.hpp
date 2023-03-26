@@ -11,11 +11,11 @@
 #define PI 3.14159265358979323846
 #define C_LIGHT 29.9  //TODO speed of light cm/ns
 
-#define CH_PER_UNIT 1e3
+#define CH_PER_UNIT int(1e3)
 #define NUM_PHOTONS 1e9
-#define SIZE_LIST_ANGLE 10000
+#define SIZE_LIST_ANGLE 1000
 #define TIME_LIMIT 3
-#define PHOTON_INTEGRATION 1e5
+#define PHOTON_INTEGRATION 1e4
 // Structure to represent a 3D vector
 class Vector 
     {
@@ -69,6 +69,13 @@ class Detector
         Vector position;
         double radius;
     };
+class Results
+    {
+    public:
+        Results();
+        std::array<int, TIME_LIMIT*CH_PER_UNIT> tcspc;
+        std::array<int, SIZE_LIST_ANGLE+1> cos_angle;
+    };
 // Function to generate a random number between 0 and 1 using a uniform distribution
 int sign(const double &x);
 void find_v1(Vector &v1, const Vector &v0, double theta, double phi);
@@ -79,5 +86,5 @@ double henyey_greenstein_F(const double &theta, const double &g);
 std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
 std::vector<double> test_angle(const double &g, const int &num_sct);
 std::vector<double> test_mus(const double &mu_s, const int &num_sct);
-std::vector<int> simulate(const double &g, const double &mu_s, Detector &detector);
+Results simulate(const double &g, const double &mu_s, Detector &detector);
 #endif
