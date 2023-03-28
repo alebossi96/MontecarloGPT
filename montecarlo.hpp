@@ -7,6 +7,8 @@
 #include <cmath>
 #include <fstream>
 #include <cstdlib>
+#include <curand.h>
+#include <curand_kernel.h>
 
 #define PI 3.14159265358979323846
 #define C_LIGHT 29.9  //TODO speed of light cm/ns
@@ -20,51 +22,40 @@
 class Vector 
     {
     public:
-        Vector(const double &x,const double &y, const double &z);
-        Vector(const Vector &v);
+        __host__ __device__ Vector(const double &x,const double &y, const double &z);
+        __device__ Vector(const Vector &v);
         double x;
         double y;
         double z;
-        double operator *(const Vector &a);
-        Vector operator *(const double &a);
-        Vector operator +(const Vector &a);
-        Vector& operator +=(const Vector &a);
+        __device__ double operator *(const Vector &a);
+        __device__ Vector operator *(const double &a);
+        __device__ Vector operator +(const Vector &a);
+        __device__ Vector& operator +=(const Vector &a);
         
-        friend std::ostream& operator<<(std::ostream& os, const Vector& v);
+        //friend std::ostream& operator<<(std::ostream& os, const Vector& v);
     };
     
-class VectorSphericalCoordinate
-    {
-    public:
-        VectorSphericalCoordinate(const Vector &v);
-        VectorSphericalCoordinate(const double &r, const double &theta, const double &phi);
-        double r, theta, phi;
-        Vector to_cartesian_coordinates();// convert spherical coordinates to a direction versor
-    };
 
-// Structure to represent a photon
 class Photon
     {
     public:
 
         Vector position;
         Vector direction;
-        VectorSphericalCoordinate direction_spherical;
-        Photon(const Vector &position_,const Vector &direction_, const double &mu_s_);
+        __device__ Photon(const Vector &position_,const Vector &direction_, const double &mu_s_);
         double length, time;
-        void propagatePhoton(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE>& deflectionAngleArray);//propagate the photon
-        void generateRandomDirection(std::mt19937& rng, const std::array<double, SIZE_LIST_ANGLE> &deflectionAngleArray);
+        __device__ void propagatePhoton(curandState_t &state, double *deflectionAngleArray);//propagate the photon
+        __device__ void generateRandomDirection(curandState_t &state, double *deflectionAngleArray);
     private:
         const double mu_s;
-        void computeOutputVersor(const double &deflectionAngle, const double &azimuthAngleDeflection);
         // generate a random direction of scattering
 
     };
 class Detector
     {
     public:
-        Detector(const Vector &position, const double radius);
-        bool is_recorded(const Photon &photon, const Vector &previous_position);
+        __host__ __device__ Detector(const Vector &position, const double radius);
+        __device__ bool is_recorded(const Photon &photon, const Vector &previous_position);
     private:
         Vector position;
         double radius;
@@ -72,19 +63,17 @@ class Detector
 class Results
     {
     public:
-        Results();
+        __host__ Results();
         std::array<int, TIME_LIMIT*CH_PER_UNIT> tcspc;
         std::array<int, SIZE_LIST_ANGLE+1> cos_angle;
     };
 // Function to generate a random number between 0 and 1 using a uniform distribution
-int sign(const double &x);
-void find_v1(Vector &v1, const Vector &v0, double theta, double phi);
-double rand01(std::mt19937& rng);
+__device__ int sign(const double &x);
+__device__ void find_v1(Vector &v1, const Vector &v0, double theta, double phi);
 // Calculate the CDF for the Henyey-Greenstein phase function
-double henyey_greenstein_F(const double &theta, const double &g);
+__host__ double henyey_greenstein_F(const double &theta, const double &g);
 // fill array of angles of scattering
-std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
-std::vector<double> test_angle(const double &g, const int &num_sct);
-std::vector<double> test_mus(const double &mu_s, const int &num_sct);
+__host__ std::array<double, SIZE_LIST_ANGLE> inverse_transform_sampling(std::function<double( const double &, const double &)> cdf, const double &g);
+__global__ void propagation(double mu_s, double g, double * deflectionAngleArray, int *tcspc, Detector *detector);
 Results simulate(const double &g, const double &mu_s, Detector &detector);
 #endif
