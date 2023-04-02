@@ -14,10 +14,10 @@
 #define C_LIGHT 29.9  //TODO speed of light cm/ns
 
 #define CH_PER_UNIT int(1e3)
-#define NUM_PHOTONS 1e9
+#define NUM_PHOTONS 1e5
 #define SIZE_LIST_ANGLE 1000
 #define TIME_LIMIT 3
-#define PHOTON_INTEGRATION 1e4
+#define PHOTON_INTEGRATION 1e3
 // Structure to represent a 3D vector
 class Vector 
     {
