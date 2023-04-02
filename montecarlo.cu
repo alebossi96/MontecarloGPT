@@ -162,7 +162,7 @@ __global__ void propagation(double mu_s, double g, double * deflectionAngleArray
             if (detector->is_recorded(photon, position_previous))
                 {
                 if(int(photon.time*CH_PER_UNIT)>TIME_LIMIT*CH_PER_UNIT) break;
-                atomicAdd(&tcspc[int(photon.time*CH_PER_UNIT)],1);
+                //atomicAdd(&tcspc[int(photon.time*CH_PER_UNIT)],1);
                 ++tot;
                 if(tot > PHOTON_INTEGRATION/(blockDim.x*gridDim.x)) finish = true;//return tcspc;  
                 break;
