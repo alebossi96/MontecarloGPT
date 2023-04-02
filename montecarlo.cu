@@ -200,7 +200,7 @@ Results simulate(const double &g, const double &mu_s, Detector &detector)
     cudaEventRecord(stop, 0);
     float time;
     cudaEventElapsedTime(&time, start, stop);
-    printf("elapsed Time %f:" time);
+    printf("elapsed Time %f:", time);
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
     
