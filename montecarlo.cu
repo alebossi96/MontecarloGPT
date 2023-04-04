@@ -185,32 +185,32 @@ Results simulate(const float &g, const float &mu_s, Detector &detector, int NUM_
     int *tcspc;
     
     cudaEvent_t start, stop;
-    check(cudaEventCreate(&start));
-    check(cudaEventCreate(&stop));
+    CHECK_CUDA_ERROR(cudaEventCreate(&start));
+    CHECK_CUDA_ERROR(cudaEventCreate(&stop));
 
     Detector *detector_dvc;
-    check(cudaMalloc(&detector_dvc, 1*sizeof(Detector)));
-    check(cudaMemcpy(detector_dvc,&detector, 1*sizeof(Detector), cudaMemcpyHostToDevice));
-    check(cudaMalloc(&tcspc, res.tcspc.size()*sizeof(int)));
-    check(cudaMemset(tcspc,0, res.tcspc.size()*sizeof(int)));
-    check(cudaMemcpyToSymbol(deflectionAngleArray_const,deflectionAngleArray.data(), SIZE_LIST_ANGLE*sizeof(float)));
+    CHECK_CUDA_ERROR(cudaMalloc(&detector_dvc, 1*sizeof(Detector)));
+    CHECK_CUDA_ERROR(cudaMemcpy(detector_dvc,&detector, 1*sizeof(Detector), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMalloc(&tcspc, res.tcspc.size()*sizeof(int)));
+    CHECK_CUDA_ERROR(cudaMemset(tcspc,0, res.tcspc.size()*sizeof(int)));
+    CHECK_CUDA_ERROR(cudaMemcpyToSymbol(deflectionAngleArray_const,deflectionAngleArray.data(), SIZE_LIST_ANGLE*sizeof(float)));
     dim3 dimBlock(1024);
     dim3 dimThreads(32);//TODO come settare i numeri??
-    check(cudaEventRecord(start, 0));
+    CHECK_CUDA_ERROR(cudaEventRecord(start, 0));
     propagation<<<dimBlock,dimThreads>>>(mu_s, g, tcspc, detector_dvc, NUM_PHOTONS, PHOTON_INTEGRATION);
     
     cudaDeviceSynchronize();
-    CHECK_LAST_CUDA_ERROR()
-    check(cudaEventRecord(stop, 0));
+    CHECK_LAST_CUDA_ERROR();
+    CHECK_CUDA_ERROR(cudaEventRecord(stop, 0));
     float time;
-    check(cudaEventElapsedTime(&time, start, stop));
+    CHECK_CUDA_ERROR(cudaEventElapsedTime(&time, start, stop));
     printf("elapsed Time %f:", time);
-    check(cudaEventDestroy(start));
-    check(cudaEventDestroy(stop));
+    CHECK_CUDA_ERROR(cudaEventDestroy(start));
+    CHECK_CUDA_ERROR(cudaEventDestroy(stop));
     
-    check(cudaMemcpy(res.tcspc.data(),tcspc, res.tcspc.size()*sizeof(int), cudaMemcpyDeviceToHost));
-    check(cudaFree(tcspc));
-    check(cudaFree(detector_dvc));
+    CHECK_CUDA_ERROR(cudaMemcpy(res.tcspc.data(),tcspc, res.tcspc.size()*sizeof(int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERROR(cudaFree(tcspc));
+    CHECK_CUDA_ERROR(cudaFree(detector_dvc));
 
     
     return res;
